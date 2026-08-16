@@ -1507,8 +1507,9 @@ const TITLES = [
 ];
 const KEY_TITLE = 'Dược sĩ thực tập';
 const STARS_PER_SHIELD = 8;
-const LS_GAME = 'pharmacy_game_v2';
-const LS_MASTERY = 'pharmacy_drug_mastery';
+// Namespaced để tránh đụng localStorage của app khác khi chạy chung origin (host AI Portal/Tizia).
+const LS_GAME = 'tu-thuoc-mo-phong:game_v2';
+const LS_MASTERY = 'tu-thuoc-mo-phong:drug_mastery';
 function loadGame(){
   try{ const g=JSON.parse(localStorage.getItem(LS_GAME)); if(g && typeof g.tier==='number') return g; }catch(e){}
   return { tier:0, progress:0, stars:0, shields:0, combo:0, shieldsFromStars:0 };
@@ -2409,7 +2410,7 @@ const pKeys = {};
 let pRects = [];
 let pRaf = null;
 let pHereZone = null;
-let hasKey = localStorage.getItem('pharmacy_key') === '1';
+let hasKey = localStorage.getItem('tu-thuoc-mo-phong:key') === '1';
 
 function pComputeRects(){
   pRects = pZoneEls.map(z=>({ el:z, x:z.offsetLeft, y:z.offsetTop, w:z.offsetWidth, h:z.offsetHeight }));
@@ -2543,7 +2544,7 @@ pMap.addEventListener('click', e=>{
   targetY = Math.max(0, Math.min(P_H - C_H, (e.clientY - r.top )/mapScale - P_BORDER - C_H/2));
 });
 
-function earnKey(){ hasKey = true; localStorage.setItem('pharmacy_key','1'); applyLocks(); }
+function earnKey(){ hasKey = true; localStorage.setItem('tu-thuoc-mo-phong:key','1'); applyLocks(); }
 
 /* ---- keyboard: steer in map view, Enter to interact ---- */
 const P_KEYMAP = { arrowup:'up', w:'up', arrowdown:'down', s:'down', arrowleft:'left', a:'left', arrowright:'right', d:'right' };

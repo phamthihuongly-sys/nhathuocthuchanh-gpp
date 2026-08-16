@@ -1,0 +1,11 @@
+{
+  "id": "tu-thuoc-mo-phong",
+  "alias": "tu-thuoc-mo-phong",
+  "name": "Tủ thuốc mô phỏng",
+  "description": "Mô phỏng tủ thuốc nhà thuốc thực hành GPP cho môn Dược lý — sắp xếp thuốc vào tủ Rx/OTC/kiểm soát đặc biệt, tìm nhanh theo tên hoạt chất, ảnh hộp thuốc thật, bài tập kéo-thả cất hàng mới về.",
+  "icon": "🗄️",
+  "version": "1.0.0",
+  "type": "embedded",
+  "hasFrontendOnly": true,
+  "keywords": ["pharmacy", "dược lý", "GPP", "nhà thuốc", "tủ thuốc"]
+}
