@@ -252,7 +252,13 @@
   @keyframes carton-bob{0%,100%{transform:translateY(0) rotate(-2.5deg);}50%{transform:translateY(-6px) rotate(2.5deg);}}
   .carton.waiting{opacity:.6;}
   .carton-slot{flex:none;display:flex;align-items:center;justify-content:center;min-height:0;}
-  .carton-slot:empty{display:none;}
+  /* collapsed only on a genuine idle "no box out" state (JS-managed via
+     .is-empty, set in pickDelivery()/dispenseNext()) — NOT via :empty,
+     which used to also fire the instant a box was mid-drag or just
+     landed, collapsing/re-expanding this slot (and the cabinet next to
+     it, which fills whatever height this section gives up) on every
+     drag. */
+  .carton-slot.is-empty{display:none;}
   .carton-slot .cart-box{width:128px;padding:8px;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.3);}
   .carton-slot .cart-box img{height:84px;}
   .carton-slot .cart-box span{font-size:.74rem;margin-top:5px;max-height:none;}
@@ -686,6 +692,146 @@
   .pm-zone.lockable.locked{filter:grayscale(.7) brightness(.82);opacity:.85;}
   .pm-zone.lockable.locked::before{content:"🔒";position:absolute;top:3px;right:5px;font-size:.9rem;z-index:4;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));}
 
+  /* ---------- Ca làm việc: NPC "Dược sĩ phụ trách" + nghiệp vụ Dự trù ---------- */
+  .npc-char{display:none;}
+  .npc-char.show{display:block;}
+  .npc-char .pm-cap{background:linear-gradient(#8a5a2c,#6b421d);}
+  .npc-char .pm-torso{background:linear-gradient(#f0e6cc,#e0d3ac);}
+
+  .npc-modal .modal{max-width:480px;}
+  .npc-row{display:flex;gap:12px;padding:14px 16px 4px;align-items:flex-start;}
+  .npc-avatar{
+    flex:none;width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(160deg,#a5723c,#6b421d);
+    display:flex;align-items:center;justify-content:center;font-size:26px;
+    box-shadow:0 3px 8px rgba(0,0,0,.3);
+  }
+  .npc-speech{
+    position:relative;background:#fff;border:1px solid #d8d3c2;border-radius:10px;
+    padding:10px 12px;font-size:.84rem;line-height:1.55;color:var(--ink);flex:1;
+  }
+  .npc-speech::before{
+    content:"";position:absolute;left:-7px;top:14px;width:0;height:0;
+    border:7px solid transparent;border-right-color:#d8d3c2;
+  }
+  .npc-speech::after{
+    content:"";position:absolute;left:-6px;top:14px;width:0;height:0;
+    border:6px solid transparent;border-right-color:#fff;
+  }
+  .npc-modal .modal-foot{justify-content:flex-end;}
+  .npc-modal .wiz-btn{border:none;}
+
+  /* wizard chrome shared by the "Phần mềm bán hàng" computer panel */
+  .wiz-steps{display:flex;gap:4px;flex-wrap:wrap;padding:10px 16px 0;}
+  .wiz-step{font-size:.66rem;font-weight:800;padding:3px 9px;border-radius:10px;background:#e6e0cd;color:#7a6c45;white-space:nowrap;}
+  .wiz-step.active{background:var(--wood);color:#fff;}
+  .wiz-step.done{background:#97c459;color:#173404;}
+  .wiz-hint{font-size:.76rem;color:#6b4a05;background:#fff3d6;border:1px solid #e0c88a;border-radius:8px;padding:7px 11px;margin:10px 16px 0;}
+  .wiz-body{padding:12px 16px;max-height:56vh;overflow:auto;}
+  .wiz-body h3{margin:0 0 8px;font-size:.92rem;color:var(--wood-dark);}
+  .wiz-body p.wiz-desc{margin:0 0 10px;font-size:.78rem;color:var(--muted);}
+  .wiz-foot{padding:10px 16px 16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid #ece7d8;}
+  .wiz-btn{
+    border:none;border-radius:18px;padding:8px 16px;font-size:.82rem;font-weight:700;cursor:pointer;
+    background:var(--wood);color:#fff;
+  }
+  .wiz-btn:hover{background:var(--wood-light);}
+  .wiz-btn.ghost{background:#e6e0cd;color:#4a3a1c;}
+  .wiz-btn.ghost:hover{background:#d8d0b6;}
+  .wiz-btn:disabled{opacity:.45;cursor:not-allowed;}
+
+  .req-list{display:flex;flex-direction:column;gap:8px;}
+  .req-row{
+    display:flex;align-items:center;gap:10px;background:#fbf8ee;border:1px solid #ece7d8;
+    border-radius:10px;padding:8px 10px;
+  }
+  .req-row img{width:40px;height:40px;object-fit:contain;background:#fff;border-radius:6px;flex:none;}
+  .req-row .req-name{font-weight:700;font-size:.84rem;color:var(--wood-dark);flex:1;}
+  .req-row .req-sub{font-size:.68rem;color:var(--muted);}
+
+  .stock-check-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+  .stock-check-tile{
+    position:relative;text-align:center;background:#fbf8ee;border:2px dashed #caa25a;border-radius:10px;
+    padding:8px;cursor:pointer;
+  }
+  .stock-check-tile img{width:100%;height:56px;object-fit:contain;background:#fff;border-radius:6px;}
+  .stock-check-tile .sct-name{display:block;font-size:.68rem;font-weight:700;margin-top:5px;color:var(--wood-dark);}
+  .stock-check-tile .sct-tick{
+    margin-top:6px;font-size:.7rem;font-weight:800;color:#8a5a2c;
+    background:#ffe6b0;border-radius:10px;padding:3px 8px;display:inline-block;
+  }
+  .stock-check-tile.checked{border-style:solid;border-color:#2e8256;background:#eaf6ee;}
+  .stock-check-tile.checked .sct-tick{background:#c0dd97;color:#173404;}
+
+  .stock-hud{
+    position:fixed;top:12px;right:12px;z-index:96;background:var(--paper);border:2px solid var(--wood);
+    border-radius:12px;padding:10px 12px;max-width:230px;box-shadow:0 8px 22px rgba(0,0,0,.32);font-size:.76rem;
+  }
+  .stock-hud h4{margin:0 0 6px;font-size:.8rem;color:var(--wood-dark);}
+  .stock-hud ul{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:4px;}
+  .stock-hud li{display:flex;align-items:center;gap:6px;color:var(--muted);}
+  .stock-hud li.on{color:#1f6b3a;font-weight:700;}
+  .stock-hud .wiz-btn{width:100%;padding:7px 10px;font-size:.76rem;}
+
+  .med-item.stockcheck-target .icon{box-shadow:0 0 0 3px #f0a92e, 0 0 10px 3px rgba(240,169,46,.7);animation:stockcheck-pulse 1.2s infinite;}
+  @keyframes stockcheck-pulse{50%{box-shadow:0 0 0 3px #f0a92e, 0 0 17px 6px rgba(240,169,46,.9);}}
+  .med-item.stockcheck-done .icon{box-shadow:0 0 0 3px #2e9d5b;}
+  .med-item .stockcheck-badge{
+    position:absolute;top:-6px;left:-6px;width:18px;height:18px;border-radius:50%;z-index:5;
+    background:#2e9d5b;color:#fff;font-size:.68rem;font-weight:800;line-height:18px;text-align:center;
+    box-shadow:0 0 0 2px #fff;
+  }
+
+  .wiz-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+  .wiz-table th{text-align:left;color:var(--muted);font-weight:700;padding:5px 6px;font-size:.68rem;border-bottom:1px solid #d8d3c2;}
+  .wiz-table td{padding:7px 6px;border-bottom:1px solid #ece7d8;vertical-align:middle;}
+  .wiz-table .wiz-verified{color:#1f6b3a;font-size:.66rem;font-weight:700;white-space:nowrap;}
+  .wiz-qty-input{width:64px;padding:5px 6px;border-radius:6px;border:1px solid #d8d3c2;text-align:center;font-size:.8rem;}
+  .wiz-qty-input:focus{outline:none;border-color:var(--wood-light);box-shadow:0 0 0 2px rgba(31,83,70,.15);}
+
+  .supplier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+  .supplier-card{
+    border:2px solid #d8d3c2;border-radius:10px;padding:10px 12px;cursor:pointer;background:#fbf8ee;
+  }
+  .supplier-card:hover{border-color:#b9a877;}
+  .supplier-card.selected{border-color:#2e8256;background:#eaf6ee;}
+  .supplier-card .sc-name{font-weight:700;font-size:.82rem;color:var(--wood-dark);margin-bottom:4px;}
+  .supplier-card .sc-row{font-size:.72rem;color:var(--muted);margin-top:2px;}
+  .supplier-card .sc-cert-ok{color:#1f6b3a;font-weight:700;}
+  .supplier-card .sc-cert-bad{color:#a3271f;font-weight:700;}
+
+  .order-summary{background:#fbf8ee;border:1px solid #ece7d8;border-radius:10px;padding:10px 12px;font-size:.8rem;}
+  .order-summary .os-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #ece7d8;}
+  .order-summary .os-row:last-child{border-bottom:none;}
+  .order-warn{margin-top:8px;font-size:.74rem;color:#a3271f;background:#fde3e3;border-radius:8px;padding:7px 10px;}
+  .order-done{text-align:center;padding:18px 10px;}
+  .order-done .od-icon{font-size:2.6rem;}
+  .order-done h3{margin:8px 0 4px;}
+
+  .npc-hint{
+    position:fixed;left:14px;bottom:14px;z-index:97;max-width:280px;display:flex;gap:8px;align-items:flex-end;
+    opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none;
+  }
+  .npc-hint.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .npc-hint .nh-avatar{
+    width:36px;height:36px;border-radius:50%;flex:none;
+    background:linear-gradient(160deg,#a5723c,#6b421d);
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+    box-shadow:0 3px 8px rgba(0,0,0,.3);
+  }
+  .npc-hint .nh-bubble{
+    background:#fff;border:1px solid #d8d3c2;border-radius:10px;padding:8px 10px;
+    font-size:.74rem;line-height:1.4;color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.22);
+  }
+
+  .shift-toast{
+    position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:98;
+    background:var(--wood-dark);color:#fff;padding:8px 16px;border-radius:20px;
+    font-size:.8rem;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.35);
+    opacity:0;transition:opacity .25s;pointer-events:none;
+  }
+  .shift-toast.show{opacity:1;}
+
   /* ---------- Mobile layout (phones / small tablets) ----------
      Below this width the side-by-side control-column + cabinet layout
      (built around a fixed --tu-w:560px cabinet) can't fit, so the two
@@ -822,7 +968,7 @@
     <div class="pm-zone z-fire"     data-name="Bình chữa cháy" style="left:832px;top:430px;width:40px;height:70px;">
       <span class="pm-ico">🧯</span></div>
 
-    <div class="pm-zone z-cashier"  data-name="Quầy thu ngân: máy tính, máy quét mã vạch, máy in hóa đơn" style="left:305px;top:250px;width:280px;height:120px;">
+    <div class="pm-zone z-cashier" data-zone="cashier" data-name="Quầy thu ngân: máy tính, máy quét mã vạch, máy in hóa đơn" style="left:305px;top:250px;width:280px;height:120px;">
       <span class="pm-ico">💵</span><span class="pm-label">Quầy thu ngân</span>
       <span class="pm-sub2">🖥️ Máy tính · 📷 Quét mã · 🖨️ In</span></div>
 
@@ -835,6 +981,16 @@
       <span class="pm-sub2 pm-cta">👉 Bấm vào luyện tập sắp xếp thuốc vào tủ theo bài để nhận 🔑 chìa khóa vào nhà thuốc ✨</span></div>
 
     <div class="pm-char" id="pmChar">
+      <div class="pm-body">
+        <span class="pm-arm pm-arm-l"></span>
+        <span class="pm-arm pm-arm-r"></span>
+        <span class="pm-leg pm-leg-l"></span>
+        <span class="pm-leg pm-leg-r"></span>
+        <span class="pm-torso"><span class="pm-cross"></span></span>
+        <span class="pm-head"><span class="pm-cap"></span></span>
+      </div>
+    </div>
+    <div class="pm-char npc-char" id="npcChar" title="Dược sĩ phụ trách" style="left:420px;top:452px;">
       <div class="pm-body">
         <span class="pm-arm pm-arm-l"></span>
         <span class="pm-arm pm-arm-r"></span>
@@ -893,7 +1049,7 @@
         <span class="carton-label">Hàng mới về</span>
         <span class="carton-hint" id="cartonHint">Bấm để lấy hộp</span>
       </button>
-      <div class="carton-slot" id="cartItems"></div>
+      <div class="carton-slot is-empty" id="cartItems"></div>
     </div>
     <div class="cart-msg" id="cartMsg"></div>
     <button class="cart-refresh" id="cartRefresh" title="Lấy lô 5 mặt hàng mới khác">🔄 Đổi lô khác</button>
@@ -924,6 +1080,36 @@
     <div class="modal-foot" id="mFoot"></div>
   </div>
 </div>
+
+<div class="overlay npc-modal" id="npcOverlay">
+  <div class="modal">
+    <div class="npc-row">
+      <div class="npc-avatar">🧑‍⚕️</div>
+      <div class="npc-speech" id="npcSpeechText"></div>
+    </div>
+    <div class="modal-foot" id="npcOverlayFoot"></div>
+  </div>
+</div>
+
+<div class="overlay" id="computerOverlay">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-head">
+      <div>
+        <h2>🖥️ Phần mềm bán hàng</h2>
+        <div class="sub" id="computerSub">Mục: Dự trù</div>
+      </div>
+      <button id="computerClose">✕</button>
+    </div>
+    <div class="wiz-steps" id="wizSteps"></div>
+    <div class="wiz-hint" id="wizHint" style="display:none;"></div>
+    <div class="wiz-body" id="wizBody"></div>
+    <div class="wiz-foot" id="wizFoot"></div>
+  </div>
+</div>
+
+<div class="stock-hud" id="stockHud" style="display:none;"></div>
+<div class="npc-hint" id="npcHintEl"><div class="nh-avatar">🧑‍⚕️</div><div class="nh-bubble" id="npcHintText"></div></div>
+<div class="shift-toast" id="shiftToast"></div>
 
 <script>
 const CSV_DATA = `STT Buổi,Tên Bài,Tên hoạt chất,Nhóm dược lý,"Hoạt chất, hàm lượng/nồng độ",Tên biệt dược,Dạng bào chế,Đường dùng,Nơi sản xuất,Nước sản xuất,Số kiểm soát,Số đăng ký,Hạn sử dụng,Điều kiện bảo quản,Cấp độ ,Link google drive,Ghi chú
@@ -1709,6 +1895,7 @@ function pickDelivery(){
   cartTotal = deliveryQueue.length; cartPlacedCount = 0; cartFastClean = 0;
   currentCartBox = null; pendingDispense = false;
   cartItemsEl.innerHTML = '';
+  cartItemsEl.classList.add('is-empty');
   updateCartProgress();
   updateMasteryUI();
   updateCartonHint();
@@ -1730,6 +1917,7 @@ function dispenseNext(){
   makeBoxDraggable(box);
   cartItemsEl.innerHTML = '';
   cartItemsEl.appendChild(box);
+  cartItemsEl.classList.remove('is-empty');
   currentCartBox = box;
   box._t0 = performance.now();   // start the speed clock for this box
   updateCartonHint();
@@ -1881,7 +2069,12 @@ function makeBoxDraggable(box){
     box.style.width = rect.width+'px';
     box.style.zIndex = 200;
     box.style.pointerEvents = 'none';   // so elementFromPoint sees what's underneath, not the box itself
-    document.body.appendChild(box);
+    /* NOT reparented to document.body: position:fixed already renders it
+       wherever the pointer is regardless of DOM parent, and reparenting
+       used to empty #cartItems mid-drag, which tripped its :empty CSS
+       rule and collapsed the carton slot — shrinking the cabinet (which
+       fills whatever height the delivery-cart gives up) for the whole
+       drag, then snapping it back on drop. Staying put avoids that. */
 
     function setHover(el){
       const over = el && el.closest ? el.closest('.med-item') : null;
@@ -1908,15 +2101,19 @@ function makeBoxDraggable(box){
 
       /* correct slot → leave the box exactly where the mouse released it
          (it stays "landed" on the shelf) instead of snapping back to the
-         carton; remove it shortly after, once the shelf's own stock badge
-         has taken over showing the new box. Any other outcome (miss /
-         wrong shelf / cancelled) keeps the old behaviour: snap back to
-         the carton slot first, then react there (shake, message). */
+         carton. It's left in place — not removed on a timer — until the
+         next box replaces it (dispenseNext()/pickDelivery() clear #cartItems
+         and refill it in the same synchronous call, so there's never an
+         observable empty frame). Removing it here on its own timer used to
+         empty #cartItems for a moment, which collapsed the carton slot —
+         and the cabinet next to it, which expands into whatever height
+         this section gives up — in a visible flash. Any other outcome
+         (miss / wrong shelf / cancelled) keeps the old behaviour: snap
+         back to the carton slot first, then react there (shake, message). */
       const willLand = commit && moved && target && !fefoBlockedBtn && target.id === box.dataset.targetId;
       if(willLand){
         box.style.pointerEvents = 'none';
         attemptDrop(box, target);
-        setTimeout(()=>box.remove(), 450);
       } else {
         box.style.position = ''; box.style.left = ''; box.style.top = ''; box.style.width = ''; box.style.zIndex = '';
         if(homeNext) homeParent.insertBefore(box, homeNext); else homeParent.appendChild(box);
@@ -2410,7 +2607,8 @@ const pKeys = {};
 let pRects = [];
 let pRaf = null;
 let pHereZone = null;
-let hasKey = localStorage.getItem('tu-thuoc-mo-phong:key') === '1';
+const TEST_MODE = new URLSearchParams(location.search).get('test') === '1';
+let hasKey = TEST_MODE ? true : localStorage.getItem('tu-thuoc-mo-phong:key') === '1';
 
 function pComputeRects(){
   pRects = pZoneEls.map(z=>({ el:z, x:z.offsetLeft, y:z.offsetTop, w:z.offsetWidth, h:z.offsetHeight }));
@@ -2450,6 +2648,8 @@ function renderMapAction(){
     mapActionEl.innerHTML = hasKey
       ? '<button class="act-btn" data-act="go">🔓 Cửa đã mở khóa</button>'
       : '<button class="act-btn locked" disabled>🔒 Cần Chìa khóa — đạt "Dược sĩ thực tập" (25⭐)</button>';
+  } else if(pHereZone && pHereZone.dataset.zone === 'cashier' && hasKey){
+    mapActionEl.innerHTML = '<button class="act-btn" data-act="go">🖥️ Mở phần mềm bán hàng (Dự trù)</button>';
   } else {
     mapActionEl.innerHTML = '';
   }
@@ -2499,6 +2699,7 @@ function applyLocks(){
   mapKeyEl.textContent = hasKey ? '🔑 Đã có Chìa khóa' : '🔒 Chưa có Chìa khóa';
   mapKeyEl.className = 'map-key ' + (hasKey ? 'has' : 'locked');
   const ds = document.getElementById('doorSub'); if(ds) ds.textContent = hasKey ? '🔓 Đã mở khóa' : '🔒 Cần Chìa khóa';
+  if(typeof npcChar !== 'undefined') npcChar.classList.toggle('show', hasKey);
   renderMapAction();
 }
 
@@ -2518,10 +2719,12 @@ document.getElementById('mobileMapBtn').addEventListener('click', showMap);
 /* ---- zone interaction ---- */
 function doZoneAction(zone){
   const z = zone && zone.dataset.zone;
-  if(z === 'sanh'){ showPharmacy(); }   // Sảnh = the tier-based cabinet putaway practice
+  if(z === 'sanh'){ clearIdleHints(); showPharmacy(); }   // Sảnh = the tier-based cabinet putaway practice
   else if(z === 'door'){
-    if(hasKey) pmZoneLabel.textContent = '🔓 Cửa đã mở khóa — chào mừng vào Nhà thuốc GPP!';
+    if(hasKey){ pmZoneLabel.textContent = '🔓 Cửa đã mở khóa — chào mừng vào Nhà thuốc GPP!'; enterPharmacyShift(); }
     else pmZoneLabel.textContent = '🔒 Cửa đang khóa — luyện ở 🎓 Sảnh Tiền Thực Hành đến danh hiệu "Dược sĩ thực tập" (25⭐) để nhận 🔑 Chìa khóa mở cửa.';
+  } else if(z === 'cashier'){
+    if(hasKey) openComputer();
   }
 }
 mapActionEl.addEventListener('click', e=>{ const b=e.target.closest('.act-btn'); if(b && !b.disabled && pHereZone) doZoneAction(pHereZone); });
@@ -2578,6 +2781,335 @@ document.addEventListener('keydown', e=>{
   const idx = parseInt(cabJumpBuf,10) - 1;
   if(idx>=0 && idx<cartWindow) showCabinet(idx);
 });
+
+/* ==================================================================
+   CA LÀM VIỆC: "Dược sĩ học việc" + NPC "Dược sĩ phụ trách"
+   Nghiệp vụ A — Dự trù thuốc: máy tính (Quầy thu ngân) → đi kiểm kê
+   thực tế trên kệ → quay lại máy tính → chọn NCC → gửi đơn.
+   ================================================================== */
+const npcChar = document.getElementById('npcChar');
+const npcOverlay = document.getElementById('npcOverlay');
+const npcSpeechText = document.getElementById('npcSpeechText');
+const npcOverlayFoot = document.getElementById('npcOverlayFoot');
+const computerOverlay = document.getElementById('computerOverlay');
+const computerSub = document.getElementById('computerSub');
+const wizSteps = document.getElementById('wizSteps');
+const wizHint = document.getElementById('wizHint');
+const wizBody = document.getElementById('wizBody');
+const wizFoot = document.getElementById('wizFoot');
+const stockHud = document.getElementById('stockHud');
+const npcHintEl = document.getElementById('npcHintEl');
+const npcHintText = document.getElementById('npcHintText');
+const shiftToastEl = document.getElementById('shiftToast');
+const LS_SHIFT_INTRO = 'pharmacy_shift_intro_seen';
+
+function showShiftToast(text){
+  shiftToastEl.textContent = text;
+  shiftToastEl.classList.add('show');
+  clearTimeout(showShiftToast._t);
+  showShiftToast._t = setTimeout(()=> shiftToastEl.classList.remove('show'), 2600);
+}
+
+/* ---- Dược sĩ phụ trách: gợi ý 2 tầng khi học viên đứng yên quá lâu ---- */
+let idleT1 = null, idleT2 = null, idleHintSet = null;
+function armIdleHints(hints){
+  clearIdleHints();
+  idleHintSet = hints;
+  idleT1 = setTimeout(()=> showNpcHint(idleHintSet.t1), 13000);
+}
+function clearIdleHints(){
+  clearTimeout(idleT1); clearTimeout(idleT2); clearTimeout(showNpcHint._hideT);
+  idleT1 = idleT2 = null; idleHintSet = null;
+  hideNpcHint();
+}
+function showNpcHint(text){
+  npcHintText.textContent = text;
+  npcHintEl.classList.add('show');
+  clearTimeout(showNpcHint._hideT);
+  showNpcHint._hideT = setTimeout(hideNpcHint, 7000);
+  if(idleHintSet){
+    clearTimeout(idleT2);
+    idleT2 = setTimeout(()=> showNpcHint(idleHintSet.t2), 13000);
+  }
+}
+function hideNpcHint(){ npcHintEl.classList.remove('show'); }
+/* reset the idle clock without losing which hint-set is active — call on
+   any interaction inside the panel currently being coached */
+function bumpIdle(){ if(idleHintSet) armIdleHints(idleHintSet); }
+
+function armRoamHint(){
+  armIdleHints({
+    t1:'Thử đi tới 💵 Quầy thu ngân xem có việc gì cần làm không.',
+    t2:'Đứng vào ô 💵 Quầy thu ngân rồi bấm nút hiện ra để mở phần mềm bán hàng.'
+  });
+}
+
+/* ---- gặp Dược sĩ phụ trách ngay khi bước qua cửa ---- */
+function enterPharmacyShift(){
+  const seen = localStorage.getItem(LS_SHIFT_INTRO) === '1';
+  if(!seen){
+    npcSpeechText.innerHTML = `Chào em! Hôm nay em vào ca với vai trò <b>Dược sĩ học việc</b> nhé.<br><br>`+
+      `Việc đầu tiên: <b>🖥️ Kiểm tra và dự trù thuốc</b> — em ra <b>💵 Quầy thu ngân</b>, mở phần mềm bán hàng để bắt đầu.<br><br>`+
+      `Trong lúc làm, nếu em đứng yên hơi lâu chưa biết làm gì tiếp, cô/thầy sẽ nhắc em nhé!`;
+    npcOverlayFoot.innerHTML = `<button class="wiz-btn" id="npcStartBtn">Bắt đầu ca làm việc →</button>`;
+    npcOverlay.classList.add('open');
+    document.getElementById('npcStartBtn').addEventListener('click', ()=>{
+      npcOverlay.classList.remove('open');
+      localStorage.setItem(LS_SHIFT_INTRO,'1');
+      armRoamHint();
+    }, {once:true});
+  } else {
+    showShiftToast('🔓 Chào mừng trở lại ca làm việc!');
+    armRoamHint();
+  }
+}
+
+/* ---- dữ liệu random cho 1 lô dự trù (3-5 mặt hàng thật từ records) ---- */
+function pickRequisitionBatch(){
+  const n = 3 + Math.floor(Math.random()*3); // 3..5
+  const seen = new Set(); const uniq = [];
+  for(const it of records){
+    const name = it['Tên hoạt chất'];
+    if(name && !seen.has(name)){ seen.add(name); uniq.push(it); }
+  }
+  const picks = [];
+  for(let i=0; i<n && uniq.length; i++){
+    const idx = Math.floor(Math.random()*uniq.length);
+    picks.push(uniq.splice(idx,1)[0]);
+  }
+  return picks.map(it=>{
+    const banTB = 3 + Math.floor(Math.random()*14);
+    const banTuanNay = Math.max(0, banTB + Math.floor((Math.random()-0.5)*6));
+    const banTuanTruoc = Math.max(0, banTB + Math.floor((Math.random()-0.5)*6));
+    const ton = Math.floor(Math.random()*6);
+    const goiY = Math.max(1, Math.round(banTB*2.5 - ton));
+    return { it, slug: slugify(it['Tên hoạt chất']), ton, banTB, banTuanNay, banTuanTruoc, goiY, checked:false, qty:'' };
+  });
+}
+
+const SUPPLIER_POOL = [
+  { name:'Công ty CP Dược phẩm Trung ương 1', price:'Trung bình', ship:'2 ngày' },
+  { name:'Công ty TNHH Dược Phát Đạt', price:'Rẻ nhất', ship:'1 ngày (nhanh nhất)' },
+  { name:'Chi nhánh Dược liệu Miền Trung', price:'Cao hơn', ship:'4 ngày' },
+];
+const INVALID_REASONS = [
+  'Giấy chứng nhận GDP đã hết hạn 2 tháng',
+  'Giấy chứng nhận Thực hành tốt phân phối thuốc (GDP) chưa được cấp lại',
+  'Giấy phép kinh doanh dược đã hết hiệu lực',
+];
+function buildSuppliers(){
+  const suppliers = SUPPLIER_POOL.map(s=> ({...s, certOk:true}));
+  const badIdx = Math.floor(Math.random()*suppliers.length);
+  suppliers[badIdx].certOk = false;
+  suppliers[badIdx].reason = INVALID_REASONS[Math.floor(Math.random()*INVALID_REASONS.length)];
+  return suppliers;
+}
+
+/* ---- wizard: máy tính · Phần mềm bán hàng · mục Dự trù ---- */
+const STEP_NAMES = ['Danh sách cần nhập','Kiểm kê thực tế','Bảng tồn & bán hàng','Chọn nhà cung ứng','Gửi đơn đặt hàng'];
+let req = null;
+
+function openComputer(){
+  req = { items: pickRequisitionBatch(), step:0, suppliers: buildSuppliers(), supplierIdx:null };
+  computerOverlay.classList.add('open');
+  renderWizStep();
+}
+document.getElementById('computerClose').addEventListener('click', ()=>{
+  computerOverlay.classList.remove('open');
+  clearIdleHints();
+});
+
+function renderStepsBar(){
+  wizSteps.innerHTML = STEP_NAMES.map((name,i)=>{
+    const cls = i===req.step ? 'active' : (i<req.step ? 'done' : '');
+    return `<span class="wiz-step ${cls}">${i+1}. ${esc(name)}</span>`;
+  }).join('');
+}
+function setWizHint(text){
+  if(!text){ wizHint.style.display='none'; return; }
+  wizHint.style.display = 'block';
+  wizHint.textContent = '👉 ' + text;
+}
+function renderWizStep(){
+  renderStepsBar();
+  if(req.step===0) renderStep0();
+  else if(req.step===2) renderStep2();
+  else if(req.step===3) renderStep3();
+  else if(req.step===4) renderStep4();
+}
+
+function renderStep0(){
+  computerSub.textContent = 'Mục: Dự trù — Danh sách cần nhập';
+  setWizHint('Xem qua danh sách các mặt hàng đang cần nhập, sau đó bấm "Đi kiểm kê thực tế".');
+  wizBody.innerHTML = `
+    <p class="wiz-desc">Hệ thống phát hiện <b>${req.items.length} mặt hàng</b> sắp hết hàng, cần dự trù thêm:</p>
+    <div class="req-list">${req.items.map(r=>`
+      <div class="req-row">
+        <img src="${PHOTO_DIR}${r.slug}.jpg" alt="" onerror="this.style.display='none'">
+        <span class="req-name">${esc(r.it['Tên hoạt chất']||'')}</span>
+        <span class="req-sub">Tồn hệ thống: ${r.ton}</span>
+      </div>`).join('')}
+    </div>`;
+  wizFoot.innerHTML = `<button class="wiz-btn" id="toStep1">Đi kiểm kê thực tế →</button>`;
+  document.getElementById('toStep1').addEventListener('click', ()=>{
+    req.step = 1;
+    computerOverlay.classList.remove('open');
+    showPharmacy();
+    beginStockCheck();
+  });
+  armIdleHints({ t1:'Xem qua danh sách các mặt hàng đang cần nhập nhé.', t2:'Bấm nút "Đi kiểm kê thực tế →" ở góc dưới để tiếp tục.' });
+}
+
+/* bước "đi kiểm kê thực tế": rời máy tính, sang khu tủ thật (Sảnh),
+   các hộp thuốc cần kiểm sẽ phát sáng — bấm vào để tick khớp */
+function beginStockCheck(){
+  clearIdleHints();
+  document.querySelectorAll('.med-item.stockcheck-target').forEach(b=> b.classList.remove('stockcheck-target'));
+  req.items.forEach(r=>{
+    if(r.it._btn && !r.checked) r.it._btn.classList.add('stockcheck-target');
+  });
+  stockHud.style.display = 'block';
+  renderStockHud();
+  const first = req.items.find(r=>!r.checked);
+  if(first) scrollToCabinet(first.it._cabinetId);
+  armIdleHints({ t1:'Đi tìm các hộp thuốc đang phát sáng viền vàng trên kệ.', t2:'Bấm trực tiếp vào hộp thuốc phát sáng để tick khớp tồn kho.' });
+}
+function renderStockHud(){
+  const doneN = req.items.filter(r=>r.checked).length;
+  const allDone = doneN >= req.items.length;
+  stockHud.innerHTML = `
+    <h4>📋 Kiểm kê thực tế (${doneN}/${req.items.length})</h4>
+    <ul>${req.items.map(r=>`<li class="${r.checked?'on':''}">${r.checked?'✅':'⬜'} ${esc(r.it['Tên hoạt chất']||'')}</li>`).join('')}</ul>
+    <button class="wiz-btn" id="backToComputerBtn" ${allDone?'':'disabled'}>← Quay lại máy tính</button>
+    ${allDone?'':`<div style="font-size:.68rem;color:var(--muted);margin-top:6px;">Bấm vào các hộp thuốc đang phát sáng trên kệ để kiểm kê đủ ${req.items.length} mặt hàng.</div>`}
+  `;
+  const btn = document.getElementById('backToComputerBtn');
+  if(btn) btn.addEventListener('click', finishStockCheck);
+}
+function markStockChecked(btn){
+  if(!req) return;
+  const r = req.items.find(x=> x.it._btn === btn);
+  if(!r || r.checked) return;
+  r.checked = true;
+  btn.classList.remove('stockcheck-target');
+  btn.classList.add('stockcheck-done');
+  const badge = document.createElement('span');
+  badge.className = 'stockcheck-badge';
+  badge.textContent = '✓';
+  btn.appendChild(badge);
+  showShiftToast(`✓ ${r.it['Tên hoạt chất']}: khớp tồn kho`);
+  renderStockHud();
+  bumpIdle();
+  const next = req.items.find(x=>!x.checked);
+  if(next) scrollToCabinet(next.it._cabinetId);
+}
+/* intercept clicks on kiểm-kê target boxes BEFORE the normal tooltip
+   handler (capture phase runs first on an ancestor, and stopPropagation
+   here keeps it from ever reaching the button's own bubble listener) */
+cabinetsRow.addEventListener('click', e=>{
+  const btn = e.target.closest('.med-item.stockcheck-target');
+  if(btn){ e.stopPropagation(); markStockChecked(btn); }
+}, true);
+function finishStockCheck(){
+  stockHud.style.display = 'none';
+  clearIdleHints();
+  document.querySelectorAll('.med-item.stockcheck-target').forEach(b=> b.classList.remove('stockcheck-target'));
+  showMap();
+  req.step = 2;
+  computerOverlay.classList.add('open');
+  renderWizStep();
+}
+
+function renderStep2(){
+  computerSub.textContent = 'Mục: Dự trù — Bảng tồn kho & lịch sử bán hàng';
+  wizBody.innerHTML = `
+    <div style="overflow-x:auto;">
+    <table class="wiz-table">
+      <tr><th>Thuốc</th><th>Tồn kho</th><th>Bán tuần này</th><th>Bán tuần trước</th><th>TB/tuần</th><th>SL cần đặt</th></tr>
+      ${req.items.map((r,i)=>`
+        <tr>
+          <td>${esc(r.it['Tên hoạt chất']||'')}</td>
+          <td>${r.ton} <span class="wiz-verified">✓ đã kiểm kê</span></td>
+          <td>${r.banTuanNay}</td>
+          <td>${r.banTuanTruoc}</td>
+          <td>${r.banTB}</td>
+          <td><input type="number" min="0" class="wiz-qty-input" data-idx="${i}" placeholder="${r.goiY}" value="${esc(r.qty)}"></td>
+        </tr>`).join('')}
+    </table>
+    </div>
+    <p class="wiz-desc" style="margin-top:10px;">💡 Gợi ý: số lượng cần đặt ≈ Định mức tối đa − Tồn thực tế, ưu tiên thuốc bán chạy. Ô để trống sẽ dùng số gợi ý khi gửi đơn.</p>`;
+  wizBody.querySelectorAll('.wiz-qty-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ req.items[+inp.dataset.idx].qty = inp.value; bumpIdle(); });
+  });
+  wizFoot.innerHTML = `<button class="wiz-btn ghost" id="backStep2">← Quay lại kiểm kê</button><button class="wiz-btn" id="toStep3">Tiếp theo: Chọn NCC →</button>`;
+  document.getElementById('backStep2').addEventListener('click', ()=>{
+    req.step = 1; computerOverlay.classList.remove('open'); showPharmacy(); beginStockCheck();
+  });
+  document.getElementById('toStep3').addEventListener('click', ()=>{ req.step = 3; renderWizStep(); });
+  armIdleHints({ t1:'Xem tồn kho và lịch sử bán hàng của từng thuốc trong bảng.', t2:'Điền số lượng cần đặt vào ô bên phải mỗi dòng — để trống sẽ dùng số gợi ý.' });
+}
+
+function renderStep3(){
+  computerSub.textContent = 'Mục: Dự trù — Chọn nhà cung ứng';
+  wizBody.innerHTML = `<div class="supplier-grid">${req.suppliers.map((s,i)=>`
+    <div class="supplier-card ${req.supplierIdx===i?'selected':''}" data-idx="${i}">
+      <div class="sc-name">${esc(s.name)}</div>
+      <div class="sc-row">💰 Giá: ${esc(s.price)}</div>
+      <div class="sc-row">🚚 Giao hàng: ${esc(s.ship)}</div>
+      <div class="sc-row ${s.certOk?'sc-cert-ok':'sc-cert-bad'}">${s.certOk ? '✅ Giấy chứng nhận GPP/GDP còn hiệu lực' : '⚠️ '+esc(s.reason)}</div>
+    </div>`).join('')}</div>`;
+  wizBody.querySelectorAll('.supplier-card').forEach(card=>{
+    card.addEventListener('click', ()=>{ req.supplierIdx = +card.dataset.idx; bumpIdle(); renderStep3(); });
+  });
+  wizFoot.innerHTML = `<button class="wiz-btn ghost" id="backStep3">← Quay lại</button><button class="wiz-btn" id="toStep4" ${req.supplierIdx==null?'disabled':''}>Tiếp theo: Lập đơn →</button>`;
+  document.getElementById('backStep3').addEventListener('click', ()=>{ req.step = 2; renderWizStep(); });
+  const nextBtn = document.getElementById('toStep4');
+  if(nextBtn) nextBtn.addEventListener('click', ()=>{ req.step = 4; renderWizStep(); });
+  armIdleHints({ t1:'Xem kỹ hồ sơ từng nhà cung ứng trước khi chọn.', t2:'Kiểm tra mục Giấy chứng nhận GPP/GDP — chỉ chọn nhà cung ứng còn hiệu lực pháp lý, đừng chỉ nhìn giá.' });
+}
+
+function renderStep4(){
+  computerSub.textContent = 'Mục: Dự trù — Lập & gửi đơn đặt hàng';
+  const supplier = req.suppliers[req.supplierIdx];
+  wizBody.innerHTML = `
+    <div class="order-summary">
+      ${req.items.map(r=>`<div class="os-row"><span>${esc(r.it['Tên hoạt chất']||'')}</span><span>${esc(r.qty || String(r.goiY))} (gợi ý: ${r.goiY})</span></div>`).join('')}
+      <div class="os-row"><b>Nhà cung ứng</b><b>${esc(supplier.name)}</b></div>
+    </div>
+    ${!supplier.certOk ? `<div class="order-warn">⚠️ Nhà cung ứng này chưa đạt chuẩn pháp lý (${esc(supplier.reason)}). Lô hàng về sẽ có nguy cơ lỗi cao hơn khi kiểm nhập.</div>` : ''}`;
+  wizFoot.innerHTML = `<button class="wiz-btn ghost" id="backStep4">← Quay lại</button><button class="wiz-btn" id="submitOrderBtn">📤 Gửi đơn đặt hàng</button>`;
+  document.getElementById('backStep4').addEventListener('click', ()=>{ req.step = 3; renderWizStep(); });
+  document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
+  armIdleHints({ t1:'Kiểm tra lại đơn hàng trước khi gửi.', t2:'Bấm nút "📤 Gửi đơn đặt hàng" để hoàn thành nhiệm vụ.' });
+}
+
+function submitOrder(){
+  clearIdleHints();
+  const supplier = req.suppliers[req.supplierIdx];
+  let starsEarned = 0;
+  req.items.forEach(r=>{
+    const qty = parseInt(r.qty,10) || r.goiY;
+    if(qty >= r.goiY*0.5 && qty <= r.goiY*1.8) starsEarned++;
+  });
+  if(supplier.certOk) starsEarned++;
+  const bonus = (typeof addStars==='function') ? addStars(starsEarned) : '';
+  if(typeof saveGame==='function') saveGame();
+  wizSteps.innerHTML = '';
+  wizHint.style.display = 'none';
+  computerSub.textContent = 'Mục: Dự trù — Hoàn thành';
+  wizBody.innerHTML = `
+    <div class="order-done">
+      <div class="od-icon">✅</div>
+      <h3>Đã gửi đơn đặt hàng!</h3>
+      <p class="wiz-desc">Nhận được ⭐ ${starsEarned}${bonus?bonus:''}. Lô hàng đang trên đường về nhà thuốc — nghiệp vụ <b>Kiểm nhập</b> sẽ xử lý lô này (đang được xây dựng tiếp theo).</p>
+    </div>`;
+  wizFoot.innerHTML = `<button class="wiz-btn" id="closeOrderDone">Đóng</button>`;
+  document.getElementById('closeOrderDone').addEventListener('click', ()=>{
+    computerOverlay.classList.remove('open');
+    req = null;
+    armRoamHint();
+  });
+}
 
 /* ---- boot: start on the overview map ---- */
 applyLocks();
